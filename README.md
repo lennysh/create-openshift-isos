@@ -3,6 +3,23 @@ Ansible Role: Create OpenShift ISOs
 
 A role for creating OpenShift (OCP or OKD) ISO's for a Single Node or Cluster Deployment
 
+Testing Progress
+--------------
+
+- [x] Single Node
+  - [x] Ignition file gets created
+  - [x] ISO builds with embedded ignition file
+  - [x] OCP set to DHCP
+  - [x] OKD set to DHCP
+  - [x] OCP set to STATIC IP
+  - [x] OKD set to STATIC IP
+- [ ] Multi Node
+  - [ ] install-config.yaml has all the needed values
+  - [x] Manifests get created
+  - [x] Ignition files get created  
+  - [x] ISO's build with embedded ignition files
+
+
 Role Variables
 --------------
 
