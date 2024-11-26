@@ -1,0 +1,24 @@
+---
+
+- name: Create OpenShift ISOs
+  hosts: localhost
+  roles:
+    - role: create-openshift-isos
+      vars:
+        openshift_distribution: "okd"
+        openshift_version: "4.15.0-0.okd-2024-03-10-010116"
+        cluster_name: okd
+        base_domain: domain.local
+        machine_cidr: '172.16.15.0/24'
+        control_plane_nodes:
+          - name: "{{ cluster_name | lower }}-sn-01"
+            ip: 172.16.15.171
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+        pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"...'
+        ssh_keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...

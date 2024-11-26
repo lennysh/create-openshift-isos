@@ -1,0 +1,62 @@
+---
+
+- name: Create OpenShift ISOs
+  hosts: localhost
+  roles:
+    - role: create-openshift-isos
+      vars:
+        openshift_distribution: "ocp"
+        openshift_version: "stable"
+        cluster_name: ocp
+        base_domain: domain.local
+        machine_cidr: '172.16.15.0/24'
+        bootstrap_node:
+          name: "{{ cluster_name | lower }}-bootstrap"
+          ip: 172.16.15.170
+          netmask: 255.255.255.0
+          gateway: 172.16.15.1
+          nameserver: 172.16.15.1
+          interface: ens192
+        control_plane_nodes:
+          - name: "{{ cluster_name | lower }}-master-01"
+            ip: 172.16.15.171
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+          - name: "{{ cluster_name | lower }}-master-02"
+            ip: 172.16.15.172
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+          - name: "{{ cluster_name | lower }}-master-03"
+            ip: 172.16.15.173
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+        compute_nodes:
+          - name: "{{ cluster_name | lower }}-worker-01"
+            ip: 172.16.15.181
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+          - name: "{{ cluster_name | lower }}-worker-02"
+            ip: 172.16.15.182
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+          - name: "{{ cluster_name | lower }}-worker-03"
+            ip: 172.16.15.183
+            netmask: 255.255.255.0
+            gateway: 172.16.15.1
+            nameserver: 172.16.15.1
+            interface: ens192
+        pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"...'
+        ssh_keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...
+          - ssh-rsa AAAAB3NzaC1yc2EAAAA...

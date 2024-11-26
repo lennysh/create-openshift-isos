@@ -1,0 +1,34 @@
+---
+
+################################################################################
+- name: Download OpenShift Installer from the internet
+  ansible.builtin.get_url:
+    url: "{{ openshift_install_url }}"
+    dest: "{{ temp_folder }}/openshift-install-linux.tar.gz"
+    mode: "0644"
+################################################################################
+- name: Extract OpenShift Installer tar file
+  ansible.builtin.unarchive:
+    src: "{{ temp_folder }}/openshift-install-linux.tar.gz"
+    dest: "{{ temp_folder }}"
+    include: openshift-install
+    remote_src: true
+################################################################################
+- name: Cleanup OpenShift Installer tar file
+  ansible.builtin.file:
+    path: "{{ temp_folder }}/openshift-install-linux.tar.gz"
+    state: absent
+################################################################################
+- name: Download CoreOS Installer from the internet
+  ansible.builtin.get_url:
+    url: "{{ coreos_installer_url }}"
+    dest: "{{ temp_folder }}/coreos-installer"
+    mode: "0755"
+################################################################################
+- name: Make sure downloaded binaries are executable
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: "u+x,g+x,o+x"
+  loop:
+    - "{{ temp_folder }}/openshift-install"
+    - "{{ temp_folder }}/coreos-installer"

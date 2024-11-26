@@ -1,0 +1,75 @@
+---
+
+################################################################################
+- name: Add needed vars for each compute node
+  ansible.builtin.set_fact:
+    __compute_nodes: >-
+      {{ __compute_nodes | default([]) + [item |
+      combine({'hostname': item['name'] | lower + '-' + base_domain | lower,
+      'iso_filename': 'worker-' + item['name'] + '.iso',
+      'ign_filename': 'worker.ign'})] }}
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    label: "{{ item['name'] }}"
+################################################################################
+- name: Update compute_nodes fact
+  ansible.builtin.set_fact:
+    compute_nodes: "{{ __compute_nodes }}"
+    __compute_nodes: []
+################################################################################
+- name: Add iso_kargs to each compute node as needed
+  ansible.builtin.set_fact:
+    __compute_nodes: >-
+      {{ __compute_nodes | default([]) + [item |
+      combine({'iso_kargs': 'ip=' + item['ip'] + '::' + item['gateway'] + ':' + item['netmask'] + ':' + item['hostname'] + ':' + item['interface'] + ':off:' + item['nameserver']})] }}
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    label: "{{ item['name'] }}"
+  when:
+    - item['ip'] is defined
+    - item['gateway'] is defined
+    - item['netmask'] is defined
+    - item['hostname'] is defined
+    - item['interface'] is defined
+    - item['nameserver'] is defined
+################################################################################
+- name: Update compute_nodes fact
+  ansible.builtin.set_fact:
+    compute_nodes: "{{ __compute_nodes }}"
+    __compute_nodes: []
+################################################################################
+- name: Create initial ISO for each compute node
+  ansible.builtin.copy:
+    src: "{{ temp_folder }}/{{ iso_filename }}"
+    dest: "{{ temp_folder }}/{{ full_cluster_name }}/isos/{{ item['iso_filename'] }}"
+    remote_src: true
+    mode: "0644"
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    label: "{{ item['iso_filename'] }}"
+###############################################################################
+- name: Embed ignition file in each ISO
+  ansible.builtin.command: >-
+    ./coreos-installer iso ignition embed -fi ./{{ full_cluster_name }}/{{ item['ign_filename'] }}
+    {{ full_cluster_name }}/isos/{{ item['iso_filename'] }}
+  args:
+    chdir: "{{ temp_folder }}"
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    label: "{{ item['iso_filename'] }}"
+  register: embed_ignition
+  changed_when: embed_ignition.rc == 0 and embed_ignition.stderr == ""
+################################################################################
+- name: Embed static IP information in each ISO
+  ansible.builtin.command: >-
+    ./coreos-installer iso kargs modify -a "{{ item['iso_kargs'] }}" \
+    {{ full_cluster_name }}/isos/{{ item['iso_filename'] }}
+  args:
+    chdir: "{{ temp_folder }}"
+  loop: "{{ compute_nodes }}"
+  loop_control:
+    label: "{{ item['iso_filename'] }}"
+  register: embed_static_ip
+  changed_when: embed_static_ip.rc == 0 and embed_static_ip.stderr == ""
+  when: item['iso_kargs'] is defined
+################################################################################

@@ -1,0 +1,12 @@
+galaxy_info:
+  author: lennysh
+  description: Ansible Role for Creating OpenShift (OCP or OKD) ISO's for Cluster Deployment
+  issue_tracker_url: https://github.com/lennysh/create-openshift-isos/issues
+  license: MIT
+  min_ansible_version: !!str 2.10
+  galaxy_tags:
+    - openshift
+    - ocp
+    - okd
+    - coreos
+    - iso

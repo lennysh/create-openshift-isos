@@ -1,0 +1,7 @@
+---
+
+################################################################################
+- name: Set needed vars for OKD
+  ansible.builtin.set_fact:
+    openshift_install_url: "https://github.com/okd-project/okd/releases/download/{{ openshift_version }}/openshift-install-linux-{{ openshift_version }}.tar.gz"
+    coreos_installer_url: "https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer_amd64"

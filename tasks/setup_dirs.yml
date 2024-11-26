@@ -1,0 +1,26 @@
+---
+
+################################################################################
+- name: Remove temp directory if it exists
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: absent
+################################################################################
+- name: Create new temp directory
+  ansible.builtin.file:
+    path: "{{ temp_folder }}"
+    state: directory
+    mode: "0755"
+################################################################################
+- name: Create cluster folder in temp folder
+  ansible.builtin.file:
+    path: "{{ temp_folder }}/{{ full_cluster_name }}"
+    state: directory
+    mode: "0755"
+################################################################################
+- name: Create cluster isos folder in temp folder
+  ansible.builtin.file:
+    path: "{{ temp_folder }}/{{ full_cluster_name }}/isos"
+    state: directory
+    mode: "0755"
+################################################################################

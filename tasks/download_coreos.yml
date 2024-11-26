@@ -1,0 +1,27 @@
+---
+
+################################################################################
+- name: Run openshift-install command to get JSON output
+  ansible.builtin.command: "./openshift-install coreos print-stream-json"
+  args:
+    chdir: "{{ temp_folder }}"
+  changed_when: false
+  register: openshift_install
+################################################################################
+- name: Extract JSON output from openshift-install command
+  ansible.builtin.set_fact:
+    openshift_install_json: "{{ openshift_install['stdout'] }}"
+################################################################################
+- name: Extract location for x86_64 baremetal iso
+  ansible.builtin.set_fact:
+    iso_url: "{{ openshift_install_json['architectures'][openshift_arch]['artifacts']['metal']['formats']['iso']['disk']['location'] }}"
+################################################################################
+- name: Extract the filename from the URL
+  ansible.builtin.set_fact:
+    iso_filename: "{{ iso_url | basename }}"
+################################################################################
+- name: "Download CoreOS ISO from the internet: {{ iso_filename }}"
+  ansible.builtin.get_url:
+    url: "{{ iso_url }}"
+    dest: "{{ temp_folder }}/{{ iso_filename }}"
+    mode: "0644"

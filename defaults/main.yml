@@ -1,0 +1,14 @@
+---
+
+openshift_distribution: "ocp" # ocp (default), or okd
+
+# Needs to be a value from: https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/
+#  Example: stable (for latest stable)
+#           stable-4.17 (for latest stable 4.17)
+# For OKD, needs to be a release from: https://github.com/okd-project/okd/releases
+#  Example: 4.15.0-0.okd-2024-03-10-010116
+#           4.14.0-0.okd-2024-01-26-175629
+openshift_version: "stable"
+
+openshift_arch: x86_64
+coreos_arch: amd64

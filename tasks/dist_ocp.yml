@@ -1,0 +1,7 @@
+---
+
+################################################################################
+- name: Set needed vars for OCP
+  ansible.builtin.set_fact:
+    openshift_install_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/{{ openshift_version }}/amd64/openshift-install-linux.tar.gz"
+    coreos_installer_url: "https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer_amd64"
