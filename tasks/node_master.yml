@@ -5,29 +5,29 @@
   ansible.builtin.set_fact:
     __control_plane_nodes: >-
       {{ __control_plane_nodes | default([]) + [item |
-      combine({'hostname': item['name'] | lower + '-' + base_domain | lower,
+      combine({'hostname': item['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
       'iso_filename': 'master-' + item['name'] + '.iso',
       'ign_filename': 'master.ign'})] }}
-  loop: "{{ control_plane_nodes }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['name'] }}"
-  when: control_plane_nodes | length > 1
+  when: create_openshift_isos_control_plane_nodes | length > 1
 ################################################################################
 - name: Add needed vars for single node
   ansible.builtin.set_fact:
     __control_plane_nodes: >-
       {{ __control_plane_nodes | default([]) + [item |
-      combine({'hostname': item['name'] | lower + '-' + base_domain | lower,
+      combine({'hostname': item['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
       'iso_filename': 'single-node-' + item['name'] + '.iso',
       'ign_filename': 'bootstrap-in-place-for-live-iso.ign'})] }}
-  loop: "{{ control_plane_nodes }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['name'] }}"
-  when: control_plane_nodes | length == 1
+  when: create_openshift_isos_control_plane_nodes | length == 1
 ################################################################################
-- name: Update control_plane_nodes fact
+- name: Update create_openshift_isos_control_plane_nodes fact
   ansible.builtin.set_fact:
-    control_plane_nodes: "{{ __control_plane_nodes }}"
+    create_openshift_isos_control_plane_nodes: "{{ __control_plane_nodes }}"
     __control_plane_nodes: []
 ################################################################################
 - name: Add iso_kargs to each control plane node as needed
@@ -35,7 +35,7 @@
     __control_plane_nodes: >-
       {{ __control_plane_nodes | default([]) + [item |
       combine({'iso_kargs': 'ip=' + item['ip'] + '::' + item['gateway'] + ':' + item['netmask'] + ':' + item['hostname'] + ':' + item['interface'] + ':off:' + item['nameserver']})] }}
-  loop: "{{ control_plane_nodes }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['name'] }}"
   when:
@@ -46,43 +46,43 @@
     - item['interface'] is defined
     - item['nameserver'] is defined
 ################################################################################
-- name: Update control_plane_nodes fact
+- name: Update create_openshift_isos_control_plane_nodes fact
   ansible.builtin.set_fact:
-    control_plane_nodes: "{{ __control_plane_nodes }}"
+    create_openshift_isos_control_plane_nodes: "{{ __control_plane_nodes }}"
     __control_plane_nodes: []
 ################################################################################
 - name: Create initial ISO for each control plane node
   ansible.builtin.copy:
-    src: "{{ temp_folder }}/{{ iso_filename }}"
-    dest: "{{ temp_folder }}/{{ full_cluster_name }}/isos/{{ item['iso_filename'] }}"
+    src: "{{ __temp_folder }}/{{ __iso_filename }}"
+    dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}"
     remote_src: true
     mode: "0644"
-  loop: "{{ control_plane_nodes }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['iso_filename'] }}"
 ###############################################################################
 - name: Embed ignition file in each ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso ignition embed -fi ./{{ full_cluster_name }}/{{ item['ign_filename'] }}
-    {{ full_cluster_name }}/isos/{{ item['iso_filename'] }}
+    ./coreos-installer iso ignition embed -fi ./{{ __full_cluster_name }}/{{ item['ign_filename'] }}
+    {{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}
   args:
-    chdir: "{{ temp_folder }}"
-  loop: "{{ control_plane_nodes }}"
+    chdir: "{{ __temp_folder }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['iso_filename'] }}"
-  register: embed_ignition
-  changed_when: embed_ignition.rc == 0 and embed_ignition.stderr == ""
+  register: __embed_ignition
+  changed_when: __embed_ignition.rc == 0 and __embed_ignition.stderr == ""
 ################################################################################
 - name: Embed static IP information in each ISO
   ansible.builtin.command: >-
     ./coreos-installer iso kargs modify -a "{{ item['iso_kargs'] }}" \
-    {{ full_cluster_name }}/isos/{{ item['iso_filename'] }}
+    {{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}
   args:
-    chdir: "{{ temp_folder }}"
-  loop: "{{ control_plane_nodes }}"
+    chdir: "{{ __temp_folder }}"
+  loop: "{{ create_openshift_isos_control_plane_nodes }}"
   loop_control:
     label: "{{ item['iso_filename'] }}"
-  register: embed_static_ip
-  changed_when: embed_static_ip.rc == 0 and embed_static_ip.stderr == ""
+  register: __embed_static_ip
+  changed_when: __embed_static_ip.rc == 0 and __embed_static_ip.stderr == ""
   when: item['iso_kargs'] is defined
 ################################################################################

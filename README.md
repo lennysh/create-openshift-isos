@@ -14,17 +14,17 @@ Example Playbook (see more in tests folder)
     - name: Create OpenShift ISOs
       hosts: localhost
       roles:
-        - role: create-openshift-isos
+        - role: lennysh.create_openshift_isos
           vars:
-            openshift_distribution: "ocp"
-            openshift_version: "stable"
-            cluster_name: ocp
-            base_domain: domain.local
-            machine_cidr: '172.16.15.0/24'
-            control_plane_nodes:
+            create_openshift_isos_openshift_distribution: "ocp"
+            create_openshift_isos_openshift_version: "stable"
+            create_openshift_isos_cluster_name: ocp
+            create_openshift_isos_base_domain: domain.local
+            create_openshift_isos_machine_cidr: '172.16.15.0/24'
+            create_openshift_isos_control_plane_nodes:
               - name: "{{ cluster_name | lower }}-sn-01"
-            pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"...'
-            ssh_keys:
+            create_openshift_isos_pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"...'
+            create_openshift_isos_ssh_keys:
               - ssh-rsa AAAAB3NzaC1yc2EAAAA...
 
 License

@@ -1,32 +1,32 @@
 ---
 
 ################################################################################
-- name: Fail if control_plane_nodes is not defined or empty
+- name: Fail if create_openshift_isos_control_plane_nodes is not defined or empty
   ansible.builtin.fail:
-    msg: "control_plane_nodes is not defined or empty"
+    msg: "create_openshift_isos_control_plane_nodes is not defined or empty"
   when:
-    - control_plane_nodes is not defined
-    - control_plane_nodes | length == 0
+    - create_openshift_isos_control_plane_nodes is not defined
+    - create_openshift_isos_control_plane_nodes | length == 0
 ################################################################################
 - name: Set cluster name variable
   ansible.builtin.set_fact:
-    full_cluster_name: "{{ cluster_name | lower }}.{{ base_domain | lower }}"
+    __full_cluster_name: "{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}"
 ################################################################################
 - name: Set temp folder variable
   ansible.builtin.set_fact:
-    temp_folder: "{{ playbook_dir }}/temp"
+    __temp_folder: "{{ playbook_dir }}/temp"
 ################################################################################
-- name: "Create needed folder structure for {{ full_cluster_name }}"
+- name: "Create needed folder structure for {{ __full_cluster_name }}"
   ansible.builtin.include_tasks: "setup_dirs.yml"
 ################################################################################
 - name: Create install-config.yaml file from template
   ansible.builtin.template:
     src: install-config.yml.j2
-    dest: "{{ temp_folder }}/{{ full_cluster_name }}/install-config.yaml"
+    dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/install-config.yaml"
     mode: "0644"
 ################################################################################
-- name: "Include needed tasks for {{ openshift_distribution | upper }}"
-  ansible.builtin.include_tasks: "dist_{{ openshift_distribution | lower }}.yml"
+- name: "Include needed tasks for {{ create_openshift_isos_openshift_distribution | upper }}"
+  ansible.builtin.include_tasks: "dist_{{ create_openshift_isos_openshift_distribution | lower }}.yml"
 ################################################################################
 - name: Include needed tasks for downloading needed binary files
   ansible.builtin.include_tasks: "download_binary_files.yml"
@@ -40,15 +40,15 @@
 - name: Include needed tasks for creating bootstrap ISO
   ansible.builtin.include_tasks: "node_bootstrap.yml"
   when:
-    - bootstrap_node is defined
-    - control_plane_nodes | length > 1
+    - create_openshift_isos_bootstrap_node is defined
+    - create_openshift_isos_control_plane_nodes | length > 1
 ################################################################################
 - name: Include needed tasks for creating master ISOs
   ansible.builtin.include_tasks: "node_master.yml"
-  when: control_plane_nodes | length > 0
+  when: create_openshift_isos_control_plane_nodes | length > 0
 ################################################################################
 - name: Include needed tasks for creating worker ISOs
   ansible.builtin.include_tasks: "node_worker.yml"
   when:
-    - compute_nodes is defined and compute_nodes | length > 0
-    - control_plane_nodes | length > 1
+    - create_openshift_isos_compute_nodes is defined and create_openshift_isos_compute_nodes | length > 0
+    - create_openshift_isos_control_plane_nodes | length > 1

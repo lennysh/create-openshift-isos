@@ -3,46 +3,46 @@
 ################################################################################
 - name: Add needed vars for each bootstrap node
   ansible.builtin.set_fact:
-    bootstrap_node: >-
-      {{ bootstrap_node | combine({'hostname': bootstrap_node['name'] | lower + '-' + base_domain | lower,
-      'iso_filename': 'bootstrap-' + bootstrap_node['name'] + '.iso',
+    create_openshift_isos_create_openshift_isos_bootstrap_node: >-
+      {{ create_openshift_isos_bootstrap_node | combine({'hostname': create_openshift_isos_bootstrap_node['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
+      'iso_filename': 'bootstrap-' + create_openshift_isos_bootstrap_node['name'] + '.iso',
       'ign_filename': 'bootstrap.ign'}) }}
 ################################################################################
 - name: Add iso_kargs to each bootstrap node as needed
   ansible.builtin.set_fact:
-    bootstrap_node: >-
-      {{ bootstrap_node | combine({'iso_kargs': 'ip=' + bootstrap_node['ip'] + '::' + bootstrap_node['gateway'] + ':' + bootstrap_node['netmask'] + ':' + bootstrap_node['hostname'] + ':' + bootstrap_node['interface'] + ':off:' + bootstrap_node['nameserver']}) }}
+    create_openshift_isos_bootstrap_node: >-
+      {{ create_openshift_isos_bootstrap_node | combine({'iso_kargs': 'ip=' + create_openshift_isos_bootstrap_node['ip'] + '::' + create_openshift_isos_bootstrap_node['gateway'] + ':' + create_openshift_isos_bootstrap_node['netmask'] + ':' + create_openshift_isos_bootstrap_node['hostname'] + ':' + create_openshift_isos_bootstrap_node['interface'] + ':off:' + create_openshift_isos_bootstrap_node['nameserver']}) }}
   when:
-    - bootstrap_node['ip'] is defined
-    - bootstrap_node['gateway'] is defined
-    - bootstrap_node['netmask'] is defined
-    - bootstrap_node['hostname'] is defined
-    - bootstrap_node['interface'] is defined
-    - bootstrap_node['nameserver'] is defined
+    - create_openshift_isos_bootstrap_node['ip'] is defined
+    - create_openshift_isos_bootstrap_node['gateway'] is defined
+    - create_openshift_isos_bootstrap_node['netmask'] is defined
+    - create_openshift_isos_bootstrap_node['hostname'] is defined
+    - create_openshift_isos_bootstrap_node['interface'] is defined
+    - create_openshift_isos_bootstrap_node['nameserver'] is defined
 ################################################################################
 - name: Create initial ISO for the bootstrap node
   ansible.builtin.copy:
-    src: "{{ temp_folder }}/{{ iso_filename }}"
-    dest: "{{ temp_folder }}/{{ full_cluster_name }}/isos/{{ bootstrap_node['iso_filename'] }}"
+    src: "{{ __temp_folder }}/{{ __iso_filename }}"
+    dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}"
     remote_src: true
     mode: "0644"
 ###############################################################################
 - name: Embed ignition file in the bootstrap ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso ignition embed -fi ./{{ full_cluster_name }}/{{ bootstrap_node['ign_filename'] }}
-    {{ full_cluster_name }}/isos/{{ bootstrap_node['iso_filename'] }}
+    ./coreos-installer iso ignition embed -fi ./{{ __full_cluster_name }}/{{ create_openshift_isos_bootstrap_node['ign_filename'] }}
+    {{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}
   args:
-    chdir: "{{ temp_folder }}"
-  register: embed_ignition
-  changed_when: embed_ignition.rc == 0 and embed_ignition.stderr == ""
+    chdir: "{{ __temp_folder }}"
+  register: __embed_ignition
+  changed_when: __embed_ignition.rc == 0 and __embed_ignition.stderr == ""
 ################################################################################
 - name: Embed static IP information in the bootstrap ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso kargs modify -a "{{ bootstrap_node['iso_kargs'] }}" \
-    {{ full_cluster_name }}/isos/{{ bootstrap_node['iso_filename'] }}
+    ./coreos-installer iso kargs modify -a "{{ create_openshift_isos_bootstrap_node['iso_kargs'] }}" \
+    {{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}
   args:
-    chdir: "{{ temp_folder }}"
-  register: embed_static_ip
-  changed_when: embed_static_ip.rc == 0 and embed_static_ip.stderr == ""
-  when: bootstrap_node['iso_kargs'] is defined
+    chdir: "{{ __temp_folder }}"
+  register: __embed_static_ip
+  changed_when: __embed_static_ip.rc == 0 and __embed_static_ip.stderr == ""
+  when: create_openshift_isos_bootstrap_node['iso_kargs'] is defined
 ################################################################################
