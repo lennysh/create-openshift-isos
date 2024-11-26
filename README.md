@@ -16,6 +16,7 @@ Testing Progress
 - [ ] Multi Node
   - [ ] install-config.yaml has all the needed values
   - [x] Manifests get created
+  - [ ] Add any tasks to manipulate the manifests before building ignition files (masters schedulable for example...)
   - [x] Ignition files get created  
   - [x] ISO's build with embedded ignition files
 
