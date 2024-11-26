@@ -3,7 +3,7 @@
 - name: Create OpenShift ISOs
   hosts: localhost
   roles:
-    - role: lennysh.create_openshift_isos
+    - role: create_openshift_isos
       vars:
         create_openshift_isos_openshift_distribution: "ocp"
         create_openshift_isos_openshift_version: "stable"
@@ -11,7 +11,7 @@
         create_openshift_isos_base_domain: domain.local
         create_openshift_isos_machine_cidr: '172.16.15.0/24'
         create_openshift_isos_control_plane_nodes:
-          - name: "{{ cluster_name | lower }}-sn-01"
+          - name: "{{ create_openshift_isos_cluster_name | lower }}-sn-01"
             ip: 172.16.15.171
             netmask: 255.255.255.0
             gateway: 172.16.15.1

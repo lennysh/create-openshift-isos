@@ -7,7 +7,7 @@
     chdir: "{{ playbook_dir }}/temp"
   changed_when: false
   register: __openshift_manifests
-  when: control_plane_nodes | length > 1
+  when: create_openshift_isos_control_plane_nodes | length > 1
 ################################################################################
 - name: Set create_param based on number of control plane nodes
   ansible.builtin.set_fact:
