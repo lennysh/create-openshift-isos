@@ -3,7 +3,7 @@
 ################################################################################
 - name: Add needed vars for each bootstrap node
   ansible.builtin.set_fact:
-    create_openshift_isos_create_openshift_isos_bootstrap_node: >-
+    create_openshift_isos_bootstrap_node: >-
       {{ create_openshift_isos_bootstrap_node | combine({'hostname': create_openshift_isos_bootstrap_node['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
       'iso_filename': 'bootstrap-' + create_openshift_isos_bootstrap_node['name'] + '.iso',
       'ign_filename': 'bootstrap.ign'}) }}
