@@ -22,6 +22,10 @@ Testing Progress
   - [x] ISO's build with embedded ignition files
   - [x] Static IP information (if provided) get's injected into the ISO's
 
+Important
+--------------
+
+- When setting a STATIC IP, interface name needs to match what it will be on the host.
 
 Role Variables
 --------------
