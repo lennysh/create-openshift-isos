@@ -17,7 +17,7 @@ Testing Progress
 - [ ] Multi Node
   - [ ] install-config.yaml has all the needed values
   - [x] Manifests get created
-  - [ ] Add any tasks to manipulate the manifests before building ignition files (masters schedulable for example...)
+  - [ ] Add any tasks to manipulate the manifests before building ignition files
   - [x] Ignition files get created  
   - [x] ISO's build with embedded ignition files
   - [x] Static IP information (if provided) get's injected into the ISO's
@@ -46,7 +46,7 @@ Example Playbook (see more in tests folder)
             create_openshift_isos_base_domain: domain.local
             create_openshift_isos_machine_cidr: '172.16.15.0/24'
             create_openshift_isos_control_plane_nodes:
-              - name: "{{ create_openshift_isos_cluster_name | lower }}-sn-01"
+              - name: "sn0"
             create_openshift_isos_pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"...'
             create_openshift_isos_ssh_keys:
               - ssh-rsa AAAAB3NzaC1yc2EAAAA...
