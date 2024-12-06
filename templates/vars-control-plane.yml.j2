@@ -1,0 +1,31 @@
+__control_plane_nodes:
+{% for item in create_openshift_isos_control_plane_nodes %}
+  - name: "{{ item['name'] }}"
+    hostname: "{{ item['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}"
+{% if create_openshift_isos_control_plane_nodes | length == 1 %}
+    ign_filename: "bootstrap-in-place-for-live-iso.ign"
+    iso_filename: "single-node-{{ item['name'] }}.iso"
+{% else %}
+    ign_filename: "master.ign"
+    iso_filename: "master-{{ item['name'] }}.iso"
+{% endif %}
+{% if item['interfaces'] is defined and item['nameservers'] is defined %}
+{% if item['interfaces'] | length >= 1 and item['nameservers'] | length >= 1 %}
+    kargs:
+{% for int in item['interfaces'] %}
+{% if int['ip'] is defined and int['gateway'] is defined and int['netmask'] is defined and int['name'] is defined %}
+    - "ip={{ int['ip'] }}::{{ int['gateway'] }}:{{ int['netmask'] }}:{{ item['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}:{{ int['name'] }}:none"
+{% endif %}
+{% endfor %}
+{% if item['nameservers'] is defined %}
+{% for ns in item['nameservers'] %}
+    - "nameserver={{ ns }}"
+{% endfor %}
+{% endif %}
+{% else %}
+    kargs: []
+{% endif %}
+{% else %}
+    kargs: []
+{% endif %}
+{% endfor %}

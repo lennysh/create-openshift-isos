@@ -1,0 +1,22 @@
+__bootstrap_node:
+  name: "{{ create_openshift_isos_bootstrap_node['name'] }}"
+  hostname: "{{ create_openshift_isos_bootstrap_node['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}"
+  ign_filename: "bootstrap.ign"
+  iso_filename: "bootstrap-{{ create_openshift_isos_bootstrap_node['name'] }}.iso"
+{% if create_openshift_isos_bootstrap_node['interfaces'] is defined and create_openshift_isos_bootstrap_node['nameservers'] is defined %}
+{% if create_openshift_isos_bootstrap_node['interfaces'] | length >= 1 and create_openshift_isos_bootstrap_node['nameservers'] | length >= 1 %}
+  kargs:
+{% for int in create_openshift_isos_bootstrap_node['interfaces'] %}
+{% if int['ip'] is defined and int['gateway'] is defined and int['netmask'] is defined and int['name'] is defined %}
+  - "ip={{ int['ip'] }}::{{ int['gateway'] }}:{{ int['netmask'] }}:{{ create_openshift_isos_bootstrap_node['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}:{{ int['name'] }}:none"
+{% endif %}
+{% endfor %}
+{% for ns in create_openshift_isos_bootstrap_node['nameservers'] %}
+  - "nameserver={{ ns }}"
+{% endfor %}
+{% else %}
+  kargs: []
+{% endif %}
+{% else %}
+  kargs: []
+{% endif %}

@@ -5,3 +5,5 @@
   ansible.builtin.set_fact:
     __openshift_install_url: "https://mirror.openshift.com/pub/openshift-v4/multi/clients/ocp/{{ create_openshift_isos_openshift_version }}/amd64/openshift-install-linux.tar.gz"
     __coreos_installer_url: "https://mirror.openshift.com/pub/openshift-v4/clients/coreos-installer/latest/coreos-installer_amd64"
+  tags:
+    - always

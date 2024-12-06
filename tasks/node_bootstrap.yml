@@ -1,48 +1,54 @@
 ---
 
 ################################################################################
-- name: Add needed vars for each bootstrap node
-  ansible.builtin.set_fact:
-    create_openshift_isos_bootstrap_node: >-
-      {{ create_openshift_isos_bootstrap_node | combine({'hostname': create_openshift_isos_bootstrap_node['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
-      'iso_filename': 'bootstrap-' + create_openshift_isos_bootstrap_node['name'] + '.iso',
-      'ign_filename': 'bootstrap.ign'}) }}
+- name: Create vars file from template
+  ansible.builtin.template:
+    src: vars-bootstrap.yml.j2
+    dest: "{{ __temp_folder }}/vars-bootstrap.yml"
+    mode: "0644"
+  tags:
+    - always
 ################################################################################
-- name: Add iso_kargs to each bootstrap node as needed
-  ansible.builtin.set_fact:
-    create_openshift_isos_bootstrap_node: >-
-      {{ create_openshift_isos_bootstrap_node | combine({'iso_kargs': 'ip=' + create_openshift_isos_bootstrap_node['ip'] + '::' + create_openshift_isos_bootstrap_node['gateway'] + ':' + create_openshift_isos_bootstrap_node['netmask'] + ':' + create_openshift_isos_bootstrap_node['hostname'] + ':' + create_openshift_isos_bootstrap_node['interface'] + ':off:' + create_openshift_isos_bootstrap_node['nameserver']}) }}
-  when:
-    - create_openshift_isos_bootstrap_node['ip'] is defined
-    - create_openshift_isos_bootstrap_node['gateway'] is defined
-    - create_openshift_isos_bootstrap_node['netmask'] is defined
-    - create_openshift_isos_bootstrap_node['hostname'] is defined
-    - create_openshift_isos_bootstrap_node['interface'] is defined
-    - create_openshift_isos_bootstrap_node['nameserver'] is defined
+- name: Include template vars file
+  ansible.builtin.include_vars: "{{ __temp_folder }}/vars-bootstrap.yml"
+  tags:
+    - always
 ################################################################################
 - name: Create initial ISO for the bootstrap node
   ansible.builtin.copy:
     src: "{{ __temp_folder }}/{{ __iso_filename }}"
-    dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}"
+    dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos/{{ __bootstrap_node['iso_filename'] }}"
     remote_src: true
     mode: "0644"
+  tags:
+    - bootstrap
+    - create_iso
 ###############################################################################
 - name: Embed ignition file in the bootstrap ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso ignition embed -fi ./{{ __full_cluster_name }}/{{ create_openshift_isos_bootstrap_node['ign_filename'] }}
-    {{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}
+    ./coreos-installer iso ignition embed -fi ./{{ __full_cluster_name }}/{{ __bootstrap_node['ign_filename'] }}
+    {{ __full_cluster_name }}/isos/{{ __bootstrap_node['iso_filename'] }}
   args:
     chdir: "{{ __temp_folder }}"
   register: __embed_ignition
   changed_when: __embed_ignition.rc == 0 and __embed_ignition.stderr == ""
+  tags:
+    - bootstrap
+    - embed_ignition
 ################################################################################
 - name: Embed static IP information in the bootstrap ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso kargs modify -a "{{ create_openshift_isos_bootstrap_node['iso_kargs'] }}" \
-    {{ __full_cluster_name }}/isos/{{ create_openshift_isos_bootstrap_node['iso_filename'] }}
+    ./coreos-installer iso kargs modify -a "{{ item }}" \
+    {{ __full_cluster_name }}/isos/{{ __bootstrap_node['iso_filename'] }}
   args:
     chdir: "{{ __temp_folder }}"
+  loop: "{{ __bootstrap_node.kargs }}"
+  loop_control:
+    label: "{{ __bootstrap_node['iso_filename'] }} -=> {{ item }}"
   register: __embed_static_ip
   changed_when: __embed_static_ip.rc == 0 and __embed_static_ip.stderr == ""
-  when: create_openshift_isos_bootstrap_node['iso_kargs'] is defined
+  tags:
+    - bootstrap
+    - embed_static_ip
 ################################################################################
+

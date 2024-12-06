@@ -1,42 +1,18 @@
 ---
 
 ################################################################################
-- name: Add needed vars for each compute node
-  ansible.builtin.set_fact:
-    __compute_nodes: >-
-      {{ __compute_nodes | default([]) + [item |
-      combine({'hostname': item['name'] | lower + '-' + create_openshift_isos_base_domain | lower,
-      'iso_filename': 'worker-' + item['name'] + '.iso',
-      'ign_filename': 'worker.ign'})] }}
-  loop: "{{ create_openshift_isos_compute_nodes }}"
-  loop_control:
-    label: "{{ item['name'] }}"
+- name: Create vars file from template
+  ansible.builtin.template:
+    src: vars-compute.yml.j2
+    dest: "{{ __temp_folder }}/vars-compute.yml"
+    mode: "0644"
+  tags:
+    - always
 ################################################################################
-- name: Update create_openshift_isos_compute_nodes fact
-  ansible.builtin.set_fact:
-    create_openshift_isos_compute_nodes: "{{ __compute_nodes }}"
-    __compute_nodes: []
-################################################################################
-- name: Add iso_kargs to each compute node as needed
-  ansible.builtin.set_fact:
-    __compute_nodes: >-
-      {{ __compute_nodes | default([]) + [item |
-      combine({'iso_kargs': 'ip=' + item['ip'] + '::' + item['gateway'] + ':' + item['netmask'] + ':' + item['hostname'] + ':' + item['interface'] + ':off:' + item['nameserver']})] }}
-  loop: "{{ create_openshift_isos_compute_nodes }}"
-  loop_control:
-    label: "{{ item['name'] }}"
-  when:
-    - item['ip'] is defined
-    - item['gateway'] is defined
-    - item['netmask'] is defined
-    - item['hostname'] is defined
-    - item['interface'] is defined
-    - item['nameserver'] is defined
-################################################################################
-- name: Update compute_nodes fact
-  ansible.builtin.set_fact:
-    create_openshift_isos_compute_nodes: "{{ __compute_nodes }}"
-    __compute_nodes: []
+- name: Include template vars file
+  ansible.builtin.include_vars: "{{ __temp_folder }}/vars-compute.yml"
+  tags:
+    - always
 ################################################################################
 - name: Create initial ISO for each compute node
   ansible.builtin.copy:
@@ -44,9 +20,13 @@
     dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}"
     remote_src: true
     mode: "0644"
-  loop: "{{ create_openshift_isos_compute_nodes }}"
+  loop: "{{ __compute_nodes }}"
   loop_control:
     label: "{{ item['iso_filename'] }}"
+  tags:
+    - compute
+    - worker
+    - create_iso
 ###############################################################################
 - name: Embed ignition file in each ISO
   ansible.builtin.command: >-
@@ -54,22 +34,31 @@
     {{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}
   args:
     chdir: "{{ __temp_folder }}"
-  loop: "{{ create_openshift_isos_compute_nodes }}"
+  loop: "{{ __compute_nodes }}"
   loop_control:
     label: "{{ item['iso_filename'] }}"
   register: __embed_ignition
   changed_when: __embed_ignition.rc == 0 and __embed_ignition.stderr == ""
+  tags:
+    - compute
+    - worker
+    - embed_ignition
 ################################################################################
 - name: Embed static IP information in each ISO
   ansible.builtin.command: >-
-    ./coreos-installer iso kargs modify -a "{{ item['iso_kargs'] }}" \
-    {{ __full_cluster_name }}/isos/{{ item['iso_filename'] }}
+    ./coreos-installer iso kargs modify -a "{{ item[1] }}" \
+    {{ __full_cluster_name }}/isos/{{ item[0]['iso_filename'] }}
   args:
     chdir: "{{ __temp_folder }}"
-  loop: "{{ create_openshift_isos_compute_nodes }}"
+  with_subelements:
+    - "{{ __compute_nodes }}"
+    - kargs
   loop_control:
-    label: "{{ item['iso_filename'] }}"
+    label: "{{ item[0]['iso_filename'] }} -=> {{ item[1] }}"
   register: __embed_static_ip
   changed_when: __embed_static_ip.rc == 0 and __embed_static_ip.stderr == ""
-  when: item['iso_kargs'] is defined
+  tags:
+    - compute
+    - worker
+    - embed_static_ip
 ################################################################################

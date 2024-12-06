@@ -5,22 +5,30 @@
   ansible.builtin.file:
     path: "{{ __temp_folder }}"
     state: absent
+  tags:
+    - clean_up
 ################################################################################
 - name: Create new temp directory
   ansible.builtin.file:
     path: "{{ __temp_folder }}"
     state: directory
     mode: "0755"
+  tags:
+    - always
 ################################################################################
 - name: Create cluster folder in temp folder
   ansible.builtin.file:
     path: "{{ __temp_folder }}/{{ __full_cluster_name }}"
     state: directory
     mode: "0755"
+  tags:
+    - always
 ################################################################################
 - name: Create cluster isos folder in temp folder
   ansible.builtin.file:
     path: "{{ __temp_folder }}/{{ __full_cluster_name }}/isos"
     state: directory
     mode: "0755"
+  tags:
+    - always
 ################################################################################

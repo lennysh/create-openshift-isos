@@ -1,0 +1,26 @@
+__compute_nodes:
+{% for item in create_openshift_isos_compute_nodes %}
+  - name: "{{ item['name'] }}"
+    hostname: "{{ item['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}"
+    ign_filename: "worker.ign"
+    iso_filename: "worker-{{ item['name'] }}.iso"
+{% if item['interfaces'] is defined and item['nameservers'] is defined %}
+{% if item['interfaces'] | length >= 1 and item['nameservers'] | length >= 1 %}
+    kargs:
+{% for int in item['interfaces'] %}
+{% if int['ip'] is defined and int['gateway'] is defined and int['netmask'] is defined and int['name'] is defined %}
+    - "ip={{ int['ip'] }}::{{ int['gateway'] }}:{{ int['netmask'] }}:{{ item['name'] | lower }}.{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}:{{ int['name'] }}:none"
+{% endif %}
+{% endfor %}
+{% if item['nameservers'] is defined %}
+{% for ns in item['nameservers'] %}
+    - "nameserver={{ ns }}"
+{% endfor %}
+{% endif %}
+{% else %}
+    kargs: []
+{% endif %}
+{% else %}
+    kargs: []
+{% endif %}
+{% endfor %}

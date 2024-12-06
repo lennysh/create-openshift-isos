@@ -6,6 +6,11 @@
     url: "{{ __openshift_install_url }}"
     dest: "{{ __temp_folder }}/openshift-install-linux.tar.gz"
     mode: "0644"
+  tags:
+    - download
+    - create_manifests
+    - create_ignition
+    - create_iso
 ################################################################################
 - name: Extract OpenShift Installer tar file
   ansible.builtin.unarchive:
@@ -13,22 +18,44 @@
     dest: "{{ __temp_folder }}"
     include: openshift-install
     remote_src: true
+  tags:
+    - download
+    - create_manifests
+    - create_ignition
+    - create_iso
 ################################################################################
-- name: Cleanup OpenShift Installer tar file
+- name: Make sure OpenShift Installer is executable
   ansible.builtin.file:
-    path: "{{ __temp_folder }}/openshift-install-linux.tar.gz"
-    state: absent
+    path: "{{ __temp_folder }}/openshift-install"
+    mode: "755"
+  tags:
+    - download
+    - create_manifests
+    - create_ignition
+    - create_iso
+################################################################################
+# - name: Cleanup OpenShift Installer tar file
+#   ansible.builtin.file:
+#     path: "{{ __temp_folder }}/openshift-install-linux.tar.gz"
+#     state: absent
+#   tags:
+#     - download
+#     - create_manifests
+#     - create_ignition
+#     - create_iso
 ################################################################################
 - name: Download CoreOS Installer from the internet
   ansible.builtin.get_url:
     url: "{{ __coreos_installer_url }}"
     dest: "{{ __temp_folder }}/coreos-installer"
-    mode: "0755"
-################################################################################
-- name: Make sure downloaded binaries are executable
-  ansible.builtin.file:
-    path: "{{ item }}"
-    mode: "u+x,g+x,o+x"
-  loop:
-    - "{{ __temp_folder }}/openshift-install"
-    - "{{ __temp_folder }}/coreos-installer"
+    mode: "755"
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker
+    - embed_ignition
+    - embed_static_ip

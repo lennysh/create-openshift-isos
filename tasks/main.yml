@@ -7,48 +7,75 @@
   when:
     - create_openshift_isos_control_plane_nodes is not defined
     - create_openshift_isos_control_plane_nodes | length == 0
+  tags:
+    - always
 ################################################################################
 - name: Set cluster name variable
   ansible.builtin.set_fact:
     __full_cluster_name: "{{ create_openshift_isos_cluster_name | lower }}.{{ create_openshift_isos_base_domain | lower }}"
+  tags:
+    - always
 ################################################################################
 - name: Set temp folder variable
   ansible.builtin.set_fact:
     __temp_folder: "{{ playbook_dir }}/temp"
+  tags:
+    - always
 ################################################################################
 - name: "Create needed folder structure for {{ __full_cluster_name }}"
   ansible.builtin.include_tasks: "setup_dirs.yml"
+  tags:
+    - always
 ################################################################################
 - name: Create install-config.yaml file from template
   ansible.builtin.template:
     src: install-config.yml.j2
     dest: "{{ __temp_folder }}/{{ __full_cluster_name }}/install-config.yaml"
     mode: "0644"
+  tags:
+    - install_config
+    - setup
 ################################################################################
 - name: "Include needed tasks for {{ create_openshift_isos_openshift_distribution | upper }}"
   ansible.builtin.include_tasks: "dist_{{ create_openshift_isos_openshift_distribution | lower }}.yml"
+  tags:
+    - always
 ################################################################################
 - name: Include needed tasks for downloading needed binary files
   ansible.builtin.include_tasks: "download_binary_files.yml"
+  tags:
+    - always
 ################################################################################
 - name: Include needed tasks for downloading CoreOS ISO
   ansible.builtin.include_tasks: "download_coreos.yml"
+  tags:
+    - always
 ################################################################################
 - name: Include needed tasks for setting up cluster files
   ansible.builtin.include_tasks: "setup_cluster_files.yml"
+  tags:
+    - always
 ################################################################################
 - name: Include needed tasks for creating bootstrap ISO
   ansible.builtin.include_tasks: "node_bootstrap.yml"
   when:
     - create_openshift_isos_bootstrap_node is defined
     - create_openshift_isos_control_plane_nodes | length > 1
+  tags:
+    - bootstrap
 ################################################################################
 - name: Include needed tasks for creating master ISOs
   ansible.builtin.include_tasks: "node_master.yml"
   when: create_openshift_isos_control_plane_nodes | length > 0
+  tags:
+    - control_plane
+    - master
 ################################################################################
 - name: Include needed tasks for creating worker ISOs
   ansible.builtin.include_tasks: "node_worker.yml"
   when:
     - create_openshift_isos_compute_nodes is defined and create_openshift_isos_compute_nodes | length > 0
     - create_openshift_isos_control_plane_nodes | length > 1
+  tags:
+    - compute
+    - worker

@@ -7,21 +7,61 @@
     chdir: "{{ __temp_folder }}"
   changed_when: false
   register: __openshift_install
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker
 ################################################################################
 - name: Extract JSON output from openshift-install command
   ansible.builtin.set_fact:
     __openshift_install_json: "{{ __openshift_install['stdout'] }}"
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker
 ################################################################################
 - name: Extract location for x86_64 baremetal iso
   ansible.builtin.set_fact:
     __iso_url: "{{ __openshift_install_json['architectures'][create_openshift_isos_openshift_arch]['artifacts']['metal']['formats']['iso']['disk']['location'] }}"
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker
 ################################################################################
 - name: Extract the filename from the URL
   ansible.builtin.set_fact:
     __iso_filename: "{{ __iso_url | basename }}"
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker
 ################################################################################
 - name: "Download CoreOS ISO from the internet: {{ __iso_filename }}"
   ansible.builtin.get_url:
     url: "{{ __iso_url }}"
     dest: "{{ __temp_folder }}/{{ __iso_filename }}"
     mode: "0644"
+  tags:
+    - download
+    - create_iso
+    - bootstrap
+    - control_plane
+    - master
+    - compute
+    - worker

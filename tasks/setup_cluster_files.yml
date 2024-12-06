@@ -4,14 +4,19 @@
 - name: Run openshift-install command to get Manifest files
   ansible.builtin.command: "./openshift-install --dir={{ __full_cluster_name }} create manifests"
   args:
-    chdir: "{{ playbook_dir }}/temp"
+    chdir: "{{ __temp_folder }}"
   changed_when: false
   register: __openshift_manifests
-  when: create_openshift_isos_control_plane_nodes | length > 1
+  tags:
+    - create_manifests
+    - create_ignition
+    - create_iso
 ################################################################################
 - name: Set create_param based on number of control plane nodes
   ansible.builtin.set_fact:
     __create_param: "{% if create_openshift_isos_control_plane_nodes | length == 1 %}single-node-ignition-config{% else %}ignition-configs{% endif %}"
+  tags:
+    - always
 ################################################################################
 - name: Run openshift-install command to get Ignition files
   ansible.builtin.command: "./openshift-install --dir={{ __full_cluster_name }} create {{ __create_param }}"
@@ -19,3 +24,6 @@
     chdir: "{{ __temp_folder }}"
   changed_when: false
   register: __openshift_ignition
+  tags:
+    - create_ignition
+    - create_iso

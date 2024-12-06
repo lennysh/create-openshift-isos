@@ -4,7 +4,11 @@ compute:
 - architecture: amd64
   hyperthreading: Enabled
   name: worker
-  replicas: {{ create_openshift_isos_compute_nodes | length }}
+{% if create_openshift_isos_control_plane_nodes | length == 1 %}
+  replicas: 0
+{% else %}
+  replicas: {{ create_openshift_isos_compute_nodes | default([]) | length }}
+{% endif %}
 controlPlane:
   architecture: amd64
   hyperthreading: Enabled
