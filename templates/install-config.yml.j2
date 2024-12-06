@@ -27,6 +27,7 @@ networking:
   - 172.30.0.0/16
 platform:
   none: {}
+fips: false
 {% if create_openshift_isos_control_plane_nodes | length == 1 %}
 bootstrapInPlace:
   installationDisk: /dev/sda
